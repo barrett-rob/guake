@@ -559,9 +559,6 @@ class Guake(SimpleGladeApp):
         # resizer stuff
         self.resizer.connect('motion-notify-event', self.on_resizer_drag)
 
-        # adding the first tab on guake
-        self.add_tab()
-
         # loading and setting up configuration stuff
         GConfHandler(self)
         GConfKeyHandler(self)
@@ -578,6 +575,20 @@ class Guake(SimpleGladeApp):
                   'Please use Guake Preferences dialog to choose another '
                   'key (The trayicon was enabled)')
             self.client.set_bool(KEY('/general/use_trayicon'), True)
+            
+        # add tabs remembered from last session
+        try:
+            guake_tabs = open(os.path.expanduser('~/.guake_tabs'), 'r')
+            for line in guake_tabs:
+                tname, tdir = line.rstrip('\n').split('\t')
+                self.add_tab(tdir, tname)
+            guake_tabs.close()
+        except:
+            # not there? not readable? add failed?
+            pass
+        
+        if not self.term_list:
+            self.add_tab()
             
     def show_notification(self, text):
         if self.client.get_bool(KEY('/general/use_popup')):
@@ -963,7 +974,7 @@ class Guake(SimpleGladeApp):
 
         return params
 
-    def add_tab(self, directory=None):
+    def add_tab(self, directory=None, label=None):
         """Adds a new tab to the terminal notebook.
         """
         box = GuakeTerminalBox()
@@ -987,7 +998,8 @@ class Guake(SimpleGladeApp):
         self.pid_list.append(pid)
 
         # Adding a new radio button to the tabbar
-        label = _('Terminal %s') % self.tab_counter
+        if not isinstance(label, basestring):
+            label = _('Terminal %s') % self.tab_counter
         tabs = self.tabs.get_children()
         parent = tabs and tabs[0] or None
 
@@ -1083,21 +1095,26 @@ class Guake(SimpleGladeApp):
     def quit(self):
         """ override to save various tabs
         """
-        guake_sessions = open(os.path.expanduser('~/.guake_sessions'), 'w')
-        i = -1;
-        for t in self.tabs.get_children():
-            i = i + 1
-            pid = self.pid_list[i]
-            try:
-                piddir = os.path.join('/proc', str(pid), 'cwd')
-                if os.path.islink(piddir):
-                    tdir = os.path.realpath(piddir)
-            except:
-                tdir = os.path.expanduser('~')
-            guake_sessions.write(t.get_property('label') + '\t' + tdir + '\n')
-        guake_sessions.flush()
-        guake_sessions.close()
-        return SimpleGladeApp.quit(self)
+        try:
+            guake_tabs = open(os.path.expanduser('~/.guake_tabs'), 'w')
+            i = -1;
+            for t in self.tabs.get_children():
+                i = i + 1
+                pid = self.pid_list[i]
+                try:
+                    piddir = os.path.join('/proc', str(pid), 'cwd')
+                    if os.path.islink(piddir):
+                        # get the real path because the process is transient
+                        tdir = os.path.realpath(piddir)
+                except:
+                    tdir = os.path.expanduser('~')
+                guake_tabs.write(t.get_property('label') + '\t' + tdir + '\n')
+            guake_tabs.flush()
+            guake_tabs.close()
+        except:
+            print('unble to persist tab state')
+        finally:
+            return SimpleGladeApp.quit(self)
 
 def main():
     """Parses the command line parameters and decide if dbus methods
