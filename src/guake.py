@@ -1079,6 +1079,11 @@ class Guake(SimpleGladeApp):
         pagepos = self.notebook.get_current_page()
         self.selected_tab = self.tabs.get_children()[pagepos]
         return pagepos
+        
+    def quit(self):
+        """ override to save state if necessary
+        """
+        return SimpleGladeApp.quit(self)
 
 def main():
     """Parses the command line parameters and decide if dbus methods
