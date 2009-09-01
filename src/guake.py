@@ -1081,8 +1081,22 @@ class Guake(SimpleGladeApp):
         return pagepos
         
     def quit(self):
-        """ override to save state if necessary
+        """ override to save various tabs
         """
+        guake_sessions = open(os.path.expanduser('~/.guake_sessions'), 'w')
+        i = -1;
+        for t in self.tabs.get_children():
+            i = i + 1
+            pid = self.pid_list[i]
+            try:
+                piddir = os.path.join('/proc', str(pid), 'cwd')
+                if os.path.islink(piddir):
+                    tdir = os.path.realpath(piddir)
+            except:
+                tdir = os.path.expanduser('~')
+            guake_sessions.write(t.get_property('label') + '\t' + tdir + '\n')
+        guake_sessions.flush()
+        guake_sessions.close()
         return SimpleGladeApp.quit(self)
 
 def main():
