@@ -578,12 +578,13 @@ class Guake(SimpleGladeApp):
                   'Please use Guake Preferences dialog to choose another '
                   'key (The trayicon was enabled)')
             self.client.set_bool(KEY('/general/use_trayicon'), True)
-        elif self.client.get_bool(KEY('/general/use_popup')):
-            # Pop-up that shows that guake is working properly (if not
-            # unset in the preferences windows)
-            self.show_notification('Guake is already running,')
+            
+        # Pop-up that shows that guake is working properly (if not
+        # unset in the preferences windows)
+        self.show_notification('Guake is already running,')
 
     def show_notification(self, text):
+        if self.client.get_bool(KEY('/general/use_popup')):
             notification = pynotify.Notification(
                 _('Guake!'),
                 _(text +
