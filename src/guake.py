@@ -579,17 +579,12 @@ class Guake(SimpleGladeApp):
                   'key (The trayicon was enabled)')
             self.client.set_bool(KEY('/general/use_trayicon'), True)
             
-        # Pop-up that shows that guake is working properly (if not
-        # unset in the preferences windows)
-        self.show_notification('Guake is already running,')
-
     def show_notification(self, text):
         if self.client.get_bool(KEY('/general/use_popup')):
             notification = pynotify.Notification(
                 _('Guake!'),
                 _(text +
-                  '\n'
-                  'press <b>%s</b> to use it.') % 
+                  '\nPress <b>%s</b> to use it.') % 
                 self.notification_label, 
                 self.notification_pixmapfile)
             notification.show()
@@ -1187,6 +1182,10 @@ def main():
         # here we know that guake was called without any parameter and
         # it is already running, so, lets toggle its visibility.
         remote_object.show_hide()
+        
+    # Pop-up that shows that guake is working properly
+    if not already_running:
+        instance.show_notification('Guake has started.')
 
     return already_running
 
