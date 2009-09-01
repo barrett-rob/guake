@@ -570,27 +570,29 @@ class Guake(SimpleGladeApp):
 
         key = self.client.get_string(GKEY('show_hide'))
         keyval, mask = gtk.accelerator_parse(key)
-        label = gtk.accelerator_get_label(keyval, mask)
-        filename = pixmapfile('guake-notification.png')
+        self.notification_label = gtk.accelerator_get_label(keyval, mask)
+        self.notification_pixmapfile = pixmapfile('guake-notification.png')
 
         if not self.hotkeys.bind(key, self.show_hide):
-            notification = pynotify.Notification(
-                _('Guake!'),
-                _('A problem happened when binding <b>%s</b> key.\n'
+            self.show_notification('A problem happened when binding <b>%s</b> key.\n'
                   'Please use Guake Preferences dialog to choose another '
-                  'key (The trayicon was enabled)') % label, filename)
+                  'key (The trayicon was enabled)')
             self.client.set_bool(KEY('/general/use_trayicon'), True)
-            notification.show()
-
         elif self.client.get_bool(KEY('/general/use_popup')):
             # Pop-up that shows that guake is working properly (if not
             # unset in the preferences windows)
+            self.show_notification('Guake is already running,')
+
+    def show_notification(self, text):
             notification = pynotify.Notification(
                 _('Guake!'),
-                _('Guake is already running,\n'
-                  'press <b>%s</b> to use it.') % label, filename)
+                _(text +
+                  '\n'
+                  'press <b>%s</b> to use it.') % 
+                self.notification_label, 
+                self.notification_pixmapfile)
             notification.show()
-
+    
     def execute_command(self, command, tab=None):
         """Execute the `command' in the `tab'. If tab is None, the
         command will be executed in the currently selected
