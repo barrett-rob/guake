@@ -734,6 +734,7 @@ class Guake(SimpleGladeApp):
 
         self.window.window.show()
         self.window.window.focus(time)
+        self.show_page(self.notebook.get_current_page())
 
     def hide(self):
         """Hides the main window of the terminal and sets the visible
@@ -1003,7 +1004,7 @@ class Guake(SimpleGladeApp):
         bnt.set_property('draw-indicator', False)
         bnt.connect('button-press-event', self.show_tab_menu)
         bnt.connect('clicked',
-                    lambda *x: self.show_page(self.notebook.page_num(box))
+                    lambda x: self.show_page(self.notebook.page_num(box))
                     )
         bnt.show()
 
