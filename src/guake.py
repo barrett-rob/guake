@@ -735,11 +735,6 @@ class Guake(SimpleGladeApp):
         self.window.window.show()
         self.window.window.focus(time)
 
-        # This is here because vte color configuration works only
-        # after the widget is shown.
-        self.client.notify(KEY('/style/font/color'))
-        self.client.notify(KEY('/style/background/color'))
-
     def hide(self):
         """Hides the main window of the terminal and sets the visible
         flag to False.
@@ -794,7 +789,7 @@ class Guake(SimpleGladeApp):
         """Callback to go to the previous tab. Called by the accel key.
         """
         if self.notebook.get_current_page() == 0:
-            self.notebook.set_current_page(self.notebook.get_n_pages()-1)
+            self.show_page(self.notebook.get_n_pages()-1)
         else:
             self.notebook.prev_page()
         return True
@@ -803,7 +798,7 @@ class Guake(SimpleGladeApp):
         """Callback to go to the next tab. Called by the accel key.
         """
         if self.notebook.get_current_page()+1 == self.notebook.get_n_pages():
-            self.notebook.set_current_page(0)
+            self.show_page(0)
         else:
             self.notebook.next_page()
         return True
@@ -1008,17 +1003,23 @@ class Guake(SimpleGladeApp):
         bnt.set_property('draw-indicator', False)
         bnt.connect('button-press-event', self.show_tab_menu)
         bnt.connect('clicked',
-                    lambda *x: self.notebook.set_current_page(
-                        self.notebook.page_num(box)
-                    ))
+                    lambda *x: self.show_page(self.notebook.page_num(box))
+                    )
         bnt.show()
 
         self.tabs.pack_start(bnt, expand=False, padding=1)
         self.tab_counter += 1
 
         self.notebook.append_page(box, None)
-        self.notebook.set_current_page(self.notebook.page_num(box))
+        self.show_page(self.notebook.page_num(box))
         self.load_config()
+        
+    def show_page(self, page_num):
+        self.notebook.set_current_page(page_num)
+        # This here because vte color configuration 
+        # works only after the widget is shown.
+        self.client.notify(KEY('/style/font/color'))
+        self.client.notify(KEY('/style/background/color'))
 
     def delete_tab(self, pagepos, kill=True):
         """This function will destroy the notebook page, terminal and
