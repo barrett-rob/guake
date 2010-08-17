@@ -900,11 +900,9 @@ class Guake(SimpleGladeApp):
         entry.reparent(vbox)
 
         response = dialog.run()
-        dialog.destroy()
-
         if response == gtk.RESPONSE_ACCEPT:
             self.selected_tab.set_label(entry.get_text())
-
+        dialog.destroy()
         self.set_terminal_focus()
 
     def on_close_activate(self, *args):
